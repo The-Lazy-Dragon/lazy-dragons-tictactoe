@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TicTacToe // 怠竜 Tearyū</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #182433;
+  --dark: #3a486a;
+  --cyan: #00fff7;
+  --red: #ff153f;
+  --crimson: #712637;
+  --x-color: #00fff7;
+  --o-color: #ff153f;
+  --grid: #3a486a;
+  --text: #00fff7;
+  --accent: #712637;
+  --font-main: 'Orbitron', monospace;
+  --font-mono: 'Share Tech Mono', monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font-main);cursor:none;}
+canvas{position:fixed;top:0;left:0;pointer-events:none;z-index:0;}
+#bgCanvas{z-index:0;}
+#trailCanvas{z-index:999;}
+
+/* CURSOR */
+#cursor{position:fixed;width:20px;height:20px;pointer-events:none;z-index:1000;transform:translate(-50%,-50%);transition:transform 0.08s;}
+#cursor::before,#cursor::after{content:'';position:absolute;background:var(--cyan);box-shadow:0 0 6px var(--cyan);}
+#cursor::before{width:2px;height:100%;left:50%;transform:translateX(-50%);}
+#cursor::after{width:100%;height:2px;top:50%;transform:translateY(-50%);}
+#cursor-dot{position:fixed;width:6px;height:6px;border-radius:50%;background:var(--cyan);pointer-events:none;z-index:1001;transform:translate(-50%,-50%);box-shadow:0 0 8px var(--cyan);transition:transform 0.04s;}
+
+/* APP */
+#app{position:fixed;top:0;left:0;width:100%;height:100%;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;}
+
+/* SCREENS */
+.screen{display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:520px;padding:20px;animation:fadeIn 0.4s ease;}
+.screen.active{display:flex;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+/* HEADER */
+.logo{font-size:clamp(18px,4vw,28px);font-weight:900;letter-spacing:4px;text-transform:uppercase;color:var(--cyan);text-shadow:0 0 20px var(--cyan),0 0 40px var(--cyan);margin-bottom:4px;}
+.logo-sub{font-family:var(--font-mono);font-size:clamp(9px,2vw,12px);color:var(--dark);letter-spacing:6px;margin-bottom:30px;opacity:0.8;}
+
+/* PANELS */
+.panel{background:rgba(24,36,51,0.85);border:1px solid var(--dark);border-radius:4px;padding:24px;width:100%;backdrop-filter:blur(10px);position:relative;overflow:hidden;}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0.5;}
+.panel-title{font-size:11px;letter-spacing:4px;color:var(--dark);margin-bottom:16px;text-transform:uppercase;}
+
+/* INPUTS */
+.input-row{display:flex;gap:10px;margin-bottom:12px;align-items:center;}
+.input-label{font-size:10px;letter-spacing:2px;color:var(--dark);min-width:40px;text-transform:uppercase;}
+input[type=text]{background:rgba(58,72,106,0.3);border:1px solid var(--dark);border-radius:2px;color:var(--cyan);font-family:var(--font-mono);font-size:13px;padding:8px 12px;width:100%;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+input[type=text]:focus{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,255,247,0.2);}
+input[type=text]::placeholder{color:rgba(58,72,106,0.8);}
+
+/* MODE BUTTONS */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.mode-btn{background:rgba(58,72,106,0.2);border:1px solid var(--dark);color:var(--dark);font-family:var(--font-main);font-size:9px;letter-spacing:2px;padding:12px 8px;cursor:none;transition:all 0.2s;text-transform:uppercase;border-radius:2px;position:relative;overflow:hidden;}
+.mode-btn::after{content:'';position:absolute;inset:0;background:var(--cyan);opacity:0;transition:opacity 0.2s;}
+.mode-btn:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 15px rgba(0,255,247,0.2);}
+.mode-btn.selected{border-color:var(--cyan);color:var(--bg);background:var(--cyan);box-shadow:0 0 20px rgba(0,255,247,0.4);}
+.mode-btn.ai-easy.selected{background:rgba(0,255,100,0.8);border-color:#00ff64;color:#000;box-shadow:0 0 20px rgba(0,255,100,0.4);}
+.mode-btn.ai-normal.selected{background:rgba(255,200,0,0.8);border-color:#ffc800;color:#000;}
+.mode-btn.ai-hard.selected{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 0 20px rgba(255,21,63,0.4);}
+
+/* PRIMARY BUTTON */
+.btn{background:transparent;border:1px solid var(--cyan);color:var(--cyan);font-family:var(--font-main);font-size:10px;letter-spacing:3px;padding:13px 28px;cursor:none;transition:all 0.2s;text-transform:uppercase;border-radius:2px;position:relative;overflow:hidden;box-shadow:0 0 10px rgba(0,255,247,0.1);}
+.btn::before{content:'';position:absolute;inset:0;background:var(--cyan);transform:translateX(-101%);transition:transform 0.3s;}
+.btn span{position:relative;z-index:1;}
+.btn:hover::before{transform:translateX(0);}
+.btn:hover{color:var(--bg);}
+.btn-sm{padding:8px 16px;font-size:9px;letter-spacing:2px;}
+.btn-red{border-color:var(--red);color:var(--red);box-shadow:0 0 10px rgba(255,21,63,0.1);}
+.btn-red::before{background:var(--red);}
+.btn-red:hover{color:#fff;}
+
+/* GAME BOARD */
+#game-header{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:0 4px;}
+.player-badge{font-size:10px;letter-spacing:2px;padding:8px 14px;border:1px solid var(--dark);border-radius:2px;transition:all 0.3s;min-width:110px;text-align:center;}
+.player-badge.active-x{border-color:var(--x-color);color:var(--x-color);box-shadow:0 0 12px rgba(0,255,247,0.3);}
+.player-badge.active-o{border-color:var(--o-color);color:var(--o-color);box-shadow:0 0 12px rgba(255,21,63,0.3);}
+.player-badge.inactive{opacity:0.35;}
+#score-display{display:flex;gap:8px;font-size:11px;font-family:var(--font-mono);}
+.score-item{text-align:center;min-width:32px;}
+.score-num{font-size:20px;font-weight:700;line-height:1;}
+.score-label{font-size:8px;letter-spacing:2px;opacity:0.5;margin-top:2px;}
+.score-item.x-score .score-num{color:var(--x-color);text-shadow:0 0 10px var(--x-color);}
+.score-item.o-score .score-num{color:var(--o-color);text-shadow:0 0 10px var(--o-color);}
+.score-item.d-score .score-num{color:var(--dark);}
+
+/* BOARD */
+#board{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:min(90vw,380px);height:min(90vw,380px);margin-bottom:16px;}
+.cell{background:rgba(58,72,106,0.15);border:1px solid rgba(58,72,106,0.5);display:flex;align-items:center;justify-content:center;font-size:clamp(36px,10vw,72px);font-weight:900;cursor:none;transition:all 0.15s;border-radius:2px;position:relative;overflow:hidden;user-select:none;}
+.cell:hover:not(.taken){background:rgba(58,72,106,0.3);border-color:var(--dark);}
+.cell.x{color:var(--x-color);text-shadow:0 0 20px var(--x-color),0 0 40px var(--x-color);animation:popIn 0.2s ease;}
+.cell.o{color:var(--o-color);text-shadow:0 0 20px var(--o-color),0 0 40px var(--o-color);animation:popIn 0.2s ease;}
+.cell.win{animation:winPulse 0.8s ease infinite alternate;}
+.cell.taken{cursor:not-allowed;}
+@keyframes popIn{0%{transform:scale(0.4);opacity:0;}60%{transform:scale(1.1);}100%{transform:scale(1);opacity:1;}}
+@keyframes winPulse{0%{box-shadow:inset 0 0 0px transparent;}100%{box-shadow:inset 0 0 20px rgba(255,255,255,0.15);}}
+
+/* GAME STATUS */
+#game-status{font-size:11px;letter-spacing:3px;text-align:center;height:20px;margin-bottom:12px;transition:all 0.3s;}
+#game-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+
+/* MODAL */
+.modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);padding:20px;}
+.modal.open{display:flex;}
+.modal-box{background:rgba(18,28,40,0.97);border:1px solid var(--dark);border-radius:4px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;position:relative;padding:24px;animation:fadeIn 0.2s ease;}
+.modal-box::-webkit-scrollbar{width:4px;}
+.modal-box::-webkit-scrollbar-track{background:transparent;}
+.modal-box::-webkit-scrollbar-thumb{background:var(--dark);border-radius:2px;}
+.modal-title{font-size:13px;letter-spacing:4px;color:var(--cyan);margin-bottom:20px;text-transform:uppercase;border-bottom:1px solid var(--dark);padding-bottom:12px;}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:1px solid var(--dark);color:var(--dark);font-family:var(--font-mono);font-size:12px;padding:4px 10px;cursor:none;transition:all 0.2s;}
+.modal-close:hover{border-color:var(--red);color:var(--red);}
+
+/* STATS */
+.stats-section{margin-bottom:20px;}
+.stats-section h3{font-size:9px;letter-spacing:3px;color:var(--dark);margin-bottom:10px;text-transform:uppercase;}
+.stats-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(58,72,106,0.3);font-family:var(--font-mono);font-size:12px;}
+.stats-row:last-child{border-bottom:none;}
+.stats-row .label{color:rgba(0,255,247,0.6);}
+.stats-row .value{color:var(--cyan);}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;}
+.stat-box{background:rgba(58,72,106,0.2);border:1px solid rgba(58,72,106,0.4);padding:10px;text-align:center;border-radius:2px;}
+.stat-box .n{font-size:22px;font-weight:700;color:var(--cyan);}
+.stat-box .l{font-size:8px;letter-spacing:2px;color:var(--dark);margin-top:2px;}
+
+/* ACHIEVEMENTS */
+.ach-list{display:flex;flex-direction:column;gap:8px;}
+.ach-item{background:rgba(58,72,106,0.15);border:1px solid rgba(58,72,106,0.3);padding:12px 14px;border-radius:2px;transition:all 0.2s;display:flex;align-items:center;gap:12px;}
+.ach-item.unlocked{border-color:rgba(0,255,247,0.3);background:rgba(0,255,247,0.04);}
+.ach-item.hidden{opacity:0.4;}
+.ach-icon{font-size:20px;width:28px;text-align:center;flex-shrink:0;}
+.ach-info .name{font-size:10px;letter-spacing:2px;color:var(--cyan);margin-bottom:3px;}
+.ach-info .desc{font-size:10px;font-family:var(--font-mono);color:rgba(58,72,106,0.9);}
+.ach-item.unlocked .ach-info .name{text-shadow:0 0 8px var(--cyan);}
+.ach-badge{margin-left:auto;font-size:8px;letter-spacing:2px;color:var(--dark);flex-shrink:0;}
+.ach-item.unlocked .ach-badge{color:var(--cyan);}
+.ach-progress{font-size:9px;font-family:var(--font-mono);color:var(--dark);margin-left:auto;flex-shrink:0;}
+
+/* SETTINGS */
+.setting-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(58,72,106,0.3);}
+.setting-row:last-child{border-bottom:none;}
+.setting-label{font-size:10px;letter-spacing:2px;color:var(--text);text-transform:uppercase;}
+.setting-desc{font-size:9px;font-family:var(--font-mono);color:var(--dark);margin-top:2px;}
+.toggle{width:40px;height:22px;background:rgba(58,72,106,0.4);border:1px solid var(--dark);border-radius:11px;position:relative;cursor:none;transition:all 0.2s;flex-shrink:0;}
+.toggle.on{background:rgba(0,255,247,0.2);border-color:var(--cyan);}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:var(--dark);top:2px;left:2px;transition:all 0.2s;}
+.toggle.on::after{background:var(--cyan);left:20px;box-shadow:0 0 6px var(--cyan);}
+.range-input{width:100px;-webkit-appearance:none;background:rgba(58,72,106,0.4);border-radius:2px;height:3px;outline:none;cursor:none;}
+.range-input::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);cursor:none;}
+
+/* COLOR PICKER */
+.color-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.color-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(58,72,106,0.15);border:1px solid rgba(58,72,106,0.3);border-radius:2px;}
+.color-name{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dark);}
+input[type=color]{width:32px;height:24px;border:1px solid var(--dark);border-radius:2px;background:none;cursor:none;padding:0;}
+
+/* CMD CONSOLE */
+#console{position:fixed;bottom:0;left:0;right:0;height:260px;background:rgba(8,14,22,0.97);border-top:1px solid var(--cyan);z-index:500;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);font-family:var(--font-mono);}
+#console.open{transform:translateY(0);}
+#console-header{display:flex;align-items:center;padding:6px 12px;border-bottom:1px solid rgba(58,72,106,0.5);gap:8px;}
+#console-header span{font-size:9px;letter-spacing:3px;color:var(--cyan);opacity:0.7;}
+#console-output{height:180px;overflow-y:auto;padding:8px 12px;font-size:11px;line-height:1.7;}
+#console-output::-webkit-scrollbar{width:3px;}
+#console-output::-webkit-scrollbar-thumb{background:var(--dark);}
+#console-input-row{display:flex;align-items:center;padding:6px 12px;border-top:1px solid rgba(58,72,106,0.3);}
+#console-prompt{color:var(--cyan);margin-right:8px;font-size:11px;}
+#console-input{flex:1;background:none;border:none;color:var(--cyan);font-family:var(--font-mono);font-size:11px;outline:none;caret-color:var(--cyan);}
+.con-line{margin:0;}
+.con-line.cmd{color:rgba(0,255,247,0.5);}
+.con-line.ok{color:var(--cyan);}
+.con-line.err{color:var(--red);}
+.con-line.warn{color:#ffc800;}
+.con-line.dim{color:var(--dark);}
+.con-line.green{color:#00ff64;}
+
+/* TOAST */
+#toast-container{position:fixed;top:20px;right:20px;z-index:800;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast{background:rgba(18,28,40,0.95);border:1px solid var(--dark);border-radius:2px;padding:10px 16px;font-size:10px;letter-spacing:2px;min-width:200px;animation:toastIn 0.3s ease;color:var(--cyan);}
+.toast.success{border-color:var(--cyan);color:var(--cyan);}
+.toast.error{border-color:var(--red);color:var(--red);}
+.toast.warning{border-color:#ffc800;color:#ffc800;}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+@keyframes toastOut{from{opacity:1;}to{opacity:0;transform:translateX(20px);}}
+
+/* ACHIEVEMENT POPUP */
+#ach-popup{position:fixed;bottom:80px;right:20px;z-index:700;background:rgba(18,28,40,0.97);border:1px solid var(--cyan);border-radius:2px;padding:12px 16px;display:none;animation:slideUp 0.4s ease;max-width:280px;box-shadow:0 0 20px rgba(0,255,247,0.15);}
+#ach-popup.show{display:block;}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+#ach-popup .pop-label{font-size:8px;letter-spacing:3px;color:var(--dark);margin-bottom:4px;text-transform:uppercase;}
+#ach-popup .pop-name{font-size:12px;letter-spacing:2px;color:var(--cyan);text-shadow:0 0 8px var(--cyan);}
+#ach-popup .pop-icon{font-size:24px;float:left;margin-right:10px;}
+
+/* NAV BAR */
+#nav-bar{position:fixed;top:16px;right:16px;display:flex;gap:6px;z-index:100;}
+.nav-btn{background:rgba(18,28,40,0.8);border:1px solid rgba(58,72,106,0.5);color:var(--dark);font-family:var(--font-mono);font-size:9px;letter-spacing:1px;padding:6px 10px;cursor:none;transition:all 0.2s;border-radius:2px;}
+.nav-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+
+/* KONAMI MODE */
+body.konami{--cyan:#00ff64;--x-color:#00ff64;--text:#00ff64;}
+body.konami .cell.x{color:#00ff64;text-shadow:0 0 20px #00ff64,0 0 40px #00ff64;}
+
+/* DEVMODE INDICATOR */
+#devmode-badge{position:fixed;top:16px;left:16px;font-size:8px;letter-spacing:2px;color:#ffc800;border:1px solid #ffc800;padding:4px 8px;border-radius:2px;display:none;z-index:100;font-family:var(--font-mono);}
+#devmode-badge.show{display:block;}
+
+/* MOBILE */
+@media(max-width:480px){
+  .panel{padding:16px;}
+  .modal-box{padding:16px;max-height:90vh;}
+  #nav-bar{top:8px;right:8px;}
+  .nav-btn{font-size:8px;padding:5px 8px;}
+  #board{width:min(92vw,320px);height:min(92vw,320px);}
+}
+
+/* IMPORT HIDDEN */
+#file-import{display:none;}
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+<canvas id="trailCanvas"></canvas>
+<div id="cursor"></div>
+<div id="cursor-dot"></div>
+
+<div id="devmode-badge">[ DEVMODE ]</div>
+
+<!-- NAV -->
+<div id="nav-bar">
+  <button class="nav-btn" onclick="openModal('stats')">STATS</button>
+  <button class="nav-btn" onclick="openModal('achievements')">ACH</button>
+  <button class="nav-btn" onclick="openModal('settings')">CFG</button>
+  <button class="nav-btn" onclick="openModal('colors')">RGB</button>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- SETUP SCREEN -->
+  <div id="screen-setup" class="screen active">
+    <div class="logo">TicTacToe</div>
+    <div class="logo-sub">// 怠竜 Tearyū · The Lazy Dragon //</div>
+
+    <div class="panel" style="margin-bottom:12px;">
+      <div class="panel-title">// Players</div>
+      <div class="input-row">
+        <span class="input-label" style="color:var(--x-color);">X</span>
+        <input type="text" id="player-x-name" placeholder="PLAYER ONE" maxlength="16" value="Player 1">
+      </div>
+      <div class="input-row">
+        <span class="input-label" style="color:var(--o-color);">O</span>
+        <input type="text" id="player-o-name" placeholder="PLAYER TWO / CPU" maxlength="16" value="Player 2">
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-title">// Mode</div>
+      <div class="mode-grid">
+        <button class="mode-btn" onclick="selectMode('pvp')" id="mode-pvp">⚡ PVP</button>
+        <button class="mode-btn ai-easy" onclick="selectMode('easy')" id="mode-easy">🤖 EASY AI</button>
+        <button class="mode-btn ai-normal" onclick="selectMode('normal')" id="mode-normal">🔥 NORMAL AI</button>
+        <button class="mode-btn ai-hard" onclick="selectMode('hard')" id="mode-hard">💀 HARD AI</button>
+      </div>
+    </div>
+
+    <button class="btn" onclick="startGame()"><span>▶ START GAME</span></button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="screen-game" class="screen">
+    <div id="game-header">
+      <div class="player-badge active-x" id="badge-x">—</div>
+      <div id="score-display">
+        <div class="score-item x-score"><div class="score-num" id="score-x">0</div><div class="score-label">X</div></div>
+        <div class="score-item d-score"><div class="score-num" id="score-d">0</div><div class="score-label">DRAW</div></div>
+        <div class="score-item o-score"><div class="score-num" id="score-o">0</div><div class="score-label">O</div></div>
+      </div>
+      <div class="player-badge inactive" id="badge-o">—</div>
+    </div>
+
+    <div id="game-status">YOUR MOVE</div>
+
+    <div id="board">
+      <div class="cell" data-i="0" onclick="cellClick(0)"></div>
+      <div class="cell" data-i="1" onclick="cellClick(1)"></div>
+      <div class="cell" data-i="2" onclick="cellClick(2)"></div>
+      <div class="cell" data-i="3" onclick="cellClick(3)"></div>
+      <div class="cell" data-i="4" onclick="cellClick(4)"></div>
+      <div class="cell" data-i="5" onclick="cellClick(5)"></div>
+      <div class="cell" data-i="6" onclick="cellClick(6)"></div>
+      <div class="cell" data-i="7" onclick="cellClick(7)"></div>
+      <div class="cell" data-i="8" onclick="cellClick(8)"></div>
+    </div>
+
+    <div id="game-controls">
+      <button class="btn btn-sm" onclick="resetBoard()"><span>↺ REMATCH</span></button>
+      <button class="btn btn-sm btn-red" onclick="goSetup()"><span>⌂ MENU</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<!-- STATS -->
+<div class="modal" id="modal-stats">
+  <div class="modal-box">
+    <div class="modal-title">// Stats</div>
+    <button class="modal-close" onclick="closeModal('stats')">✕</button>
+    <div id="stats-content"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;">
+      <button class="btn btn-sm" onclick="exportStats()"><span>↓ EXPORT</span></button>
+      <button class="btn btn-sm" onclick="document.getElementById('file-import').click()"><span>↑ IMPORT</span></button>
+      <button class="btn btn-sm btn-red" onclick="confirmReset()"><span>⊘ RESET ALL</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ACHIEVEMENTS -->
+<div class="modal" id="modal-achievements">
+  <div class="modal-box">
+    <div class="modal-title">// Achievements <span id="ach-count" style="font-size:9px;color:var(--dark);"></span></div>
+    <button class="modal-close" onclick="closeModal('achievements')">✕</button>
+    <div id="ach-content" class="ach-list"></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="modal" id="modal-settings">
+  <div class="modal-box">
+    <div class="modal-title">// Config</div>
+    <button class="modal-close" onclick="closeModal('settings')">✕</button>
+    <div class="setting-row">
+      <div><div class="setting-label">Particles</div><div class="setting-desc">Background particle system</div></div>
+      <div class="toggle" id="toggle-particles" onclick="toggleSetting('particles')"></div>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Cursor Trail</div><div class="setting-desc">Fading cursor trail effect</div></div>
+      <div class="toggle" id="toggle-trail" onclick="toggleSetting('trail')"></div>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Particle Density</div><div class="setting-desc">Number of particles</div></div>
+      <input type="range" class="range-input" id="range-particles" min="10" max="150" value="60" oninput="setParticleCount(this.value)">
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">AI Delay</div><div class="setting-desc">AI move thinking delay</div></div>
+      <input type="range" class="range-input" id="range-delay" min="0" max="1500" step="100" value="500" oninput="S.settings.aiDelay=parseInt(this.value)">
+    </div>
+    <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
+      <div class="setting-label">Score Reset</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-sm btn-red" onclick="resetSessionScores()"><span>RESET SESSION</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COLORS -->
+<div class="modal" id="modal-colors">
+  <div class="modal-box">
+    <div class="modal-title">// Color Config</div>
+    <button class="modal-close" onclick="closeModal('colors')">✕</button>
+    <div class="color-grid">
+      <div class="color-row"><span class="color-name">Background</span><input type="color" id="cp-bg" value="#182433" oninput="setColor('--bg',this.value,'bg')"></div>
+      <div class="color-row"><span class="color-name">Panel</span><input type="color" id="cp-dark" value="#3a486a" oninput="setColor('--dark',this.value,'dark')"></div>
+      <div class="color-row"><span class="color-name">X Color</span><input type="color" id="cp-cyan" value="#00fff7" oninput="setColor('--cyan',this.value,'cyan');setColor('--x-color',this.value,'x')"></div>
+      <div class="color-row"><span class="color-name">O Color</span><input type="color" id="cp-red" value="#ff153f" oninput="setColor('--red',this.value,'red');setColor('--o-color',this.value,'o')"></div>
+      <div class="color-row"><span class="color-name">Accent</span><input type="color" id="cp-crimson" value="#712637" oninput="setColor('--crimson',this.value,'crimson')"></div>
+      <div class="color-row"><span class="color-name">Text</span><input type="color" id="cp-text" value="#00fff7" oninput="setColor('--text',this.value,'text')"></div>
+    </div>
+    <div style="margin-top:14px;">
+      <button class="btn btn-sm btn-red" onclick="resetColors()"><span>RESET COLORS</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- CMD CONSOLE -->
+<div id="console">
+  <div id="console-header">
+    <span>▶ LAZY DRAGON TERMINAL</span>
+    <span style="margin-left:auto;opacity:0.4;font-size:8px;">~ TO TOGGLE · ESC TO CLOSE</span>
+  </div>
+  <div id="console-output"></div>
+  <div id="console-input-row">
+    <span id="console-prompt">dragon@ttt:~$</span>
+    <input type="text" id="console-input" autocomplete="off" spellcheck="false" placeholder="type 'help' for commands">
+  </div>
+</div>
+
+<!-- ACHIEVEMENT POPUP -->
+<div id="ach-popup">
+  <div class="pop-label">Achievement Unlocked!</div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="pop-icon" id="pop-icon"></div>
+    <div>
+      <div class="pop-name" id="pop-name"></div>
+      <div style="font-size:9px;font-family:var(--font-mono);color:var(--dark);margin-top:3px;" id="pop-desc"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast-container"></div>
+<input type="file" id="file-import" accept=".txt,.json" onchange="importStats(this)">
+
+<script>
+// ================================================================
+// STATE
+// ================================================================
+const S = {
+  screen: 'setup',
+  mode: null,
+  board: Array(9).fill(null),
+  currentPlayer: 'X',
+  gameActive: false,
+  winner: null,
+  winLine: null,
+  moveCount: 0,
+  players: { X: 'Player 1', O: 'Player 2' },
+  sessionScores: { X: 0, O: 0, draws: 0 },
+  settings: { particles: true, trail: true, particleCount: 60, aiDelay: 500 },
+  konamiActive: false,
+  konamiSeq: [],
+  devMode: false,
+  devStep: 0,
+  devSeq: ['npm install devmode','npm install cheats','npm run devmode','npm run cheats','npm enable stat-manipulation'],
+  consoleOpen: false,
+  conHistory: [],
+  conHistIdx: -1,
+  usedCmds: new Set(),
+  colorsChanged: new Set(),
+  gameStartTime: null,
+  centerMoveFirst: false,
+  achQueue: [],
+  achShowing: false,
+  stats: null,
+};
+
+const WIN_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+// ================================================================
+// ACHIEVEMENTS
+// ================================================================
+const ACHIEVEMENTS = [
+  {id:'first_blood',icon:'🩸',name:'First Blood',desc:'Win your very first game',hidden:false},
+  {id:'hat_trick',icon:'🎩',name:'Hat Trick',desc:'Win 3 games in a row',hidden:false},
+  {id:'on_a_roll',icon:'🔥',name:'On A Roll',desc:'Win 5 games in a row',hidden:false},
+  {id:'dominator',icon:'👑',name:'Dominator',desc:'Win 10 games in a row',hidden:false},
+  {id:'veteran',icon:'🏅',name:'Veteran',desc:'Play 50 total games',hidden:false},
+  {id:'century',icon:'💯',name:'Century Club',desc:'Play 100 total games',hidden:false},
+  {id:'double_c',icon:'⚡',name:'Double Down',desc:'Play 200 total games',hidden:false},
+  {id:'grinder',icon:'⚙️',name:'Grinder',desc:'Play 500 total games',hidden:false},
+  {id:'legend',icon:'🌟',name:'Legend',desc:'Play 1000 total games',hidden:false},
+  {id:'final_form',icon:'🐉',name:'Final Form',desc:'Play 1250 total games',hidden:false},
+  {id:'ai_slayer',icon:'🤖',name:'AI Slayer',desc:'Defeat the AI 10 times',hidden:false},
+  {id:'ai_hunter',icon:'🎯',name:'AI Hunter',desc:'Defeat the AI 50 times',hidden:false},
+  {id:'ai_terminator',icon:'💥',name:'AI Terminator',desc:'Defeat the AI 100 times',hidden:false},
+  {id:'easy_peasy',icon:'😴',name:'Easy Peasy',desc:'Win 10 games vs Easy AI',hidden:false},
+  {id:'mid_menace',icon:'😤',name:'Mid-Tier Menace',desc:'Win 10 games vs Normal AI',hidden:false},
+  {id:'hard_boiled',icon:'🔪',name:'Hard Boiled',desc:'Beat Hard AI 10 times',hidden:false},
+  {id:'hard_corps',icon:'💀',name:'Hard Corps',desc:'Beat Hard AI 50 times',hidden:false},
+  {id:'hard_century',icon:'🖤',name:'Hard Century',desc:'Play 100 games in Hard mode',hidden:false},
+  {id:'negotiator',icon:'🤝',name:'The Negotiator',desc:'Draw 10 total games',hidden:false},
+  {id:'quick_draw',icon:'⚡',name:'Quick Draw',desc:'Win a game in exactly 5 moves',hidden:false},
+  {id:'corner_lord',icon:'📐',name:'Corner Lord',desc:'Win with all 4 corners claimed',hidden:false},
+  {id:'center_stage',icon:'🎯',name:'Center Stage',desc:'Win 10 times when you moved first to center',hidden:false},
+  {id:'night_shift',icon:'🌙',name:'Night Shift',desc:'Play a game between midnight and 4AM',hidden:false},
+  {id:'early_riser',icon:'🌅',name:'Early Riser',desc:'Play a game before 6AM',hidden:false},
+  {id:'collector',icon:'🏆',name:'Collector',desc:'Unlock 10 achievements',hidden:false},
+  {id:'console_cowboy',icon:'💻',name:'Console Cowboy',desc:'Open the CMD console for the first time',hidden:false},
+  {id:'commander',icon:'🖥️',name:'Commander',desc:'Use 10 different console commands',hidden:false},
+  {id:'stats_addict',icon:'📊',name:'Stats Addict',desc:'Export your stats',hidden:false},
+  {id:'archivist',icon:'📥',name:'Archivist',desc:'Import stats from a file',hidden:false},
+  {id:'color_master',icon:'🎨',name:'Color Master',desc:'Customize 5 different colors',hidden:false},
+  {id:'speed_demon',icon:'⚡',name:'Speed Demon',desc:'Win a game in under 8 seconds',hidden:false},
+  {id:'die_hard',icon:'💔',name:'Die Hard',desc:'Accumulate 25 losses',hidden:false},
+  {id:'stubborn',icon:'🪨',name:'Stubborn',desc:'Play 50 games as the same player name',hidden:false},
+  {id:'the_dragon',icon:'🐲',name:'The Lazy Dragon',desc:'Unlock 20 achievements',hidden:false},
+  {id:'konami',icon:'🎮',name:'The Code',desc:'',hidden:true},
+  {id:'dragons_bane',icon:'☠️',name:"Dragon's Bane",desc:'',hidden:true},
+];
+
+// ================================================================
+// STORAGE
+// ================================================================
+function defaultStats(){
+  return {
+    totalGames:0,
+    totalDraws:0,
+    totalWins:0,
+    totalLosses:0,
+    streak:0,
+    bestStreak:0,
+    centerWins:0,
+    players:{},
+    ai:{ easy:{wins:0,losses:0,draws:0,games:0}, normal:{wins:0,losses:0,draws:0,games:0}, hard:{wins:0,losses:0,draws:0,games:0} },
+    achievements:{},
+    version:'1.0'
+  };
+}
+
+function loadStats(){
+  try{
+    const raw = localStorage.getItem('ldt_stats');
+    if(raw){ S.stats = {...defaultStats(),...JSON.parse(raw)}; }
+    else{ S.stats = defaultStats(); }
+  }catch(e){ S.stats = defaultStats(); }
+}
+
+function saveStats(){
+  localStorage.setItem('ldt_stats', JSON.stringify(S.stats));
+}
+
+// ================================================================
+// CANVAS — BACKGROUND
+// ================================================================
+const bgCanvas = document.getElementById('bgCanvas');
+const bgCtx = bgCanvas.getContext('2d');
+let particles = [];
+let konamiChars = [];
+
+function resizeCanvas(){
+  bgCanvas.width = trailCanvas.width = window.innerWidth;
+  bgCanvas.height = trailCanvas.height = window.innerHeight;
+  initParticles();
+}
+
+function initParticles(){
+  particles = [];
+  const count = S.settings.particleCount;
+  for(let i=0;i<count;i++) particles.push(newParticle());
+}
+
+function newParticle(){
+  return {
+    x: Math.random()*bgCanvas.width,
+    y: Math.random()*bgCanvas.height,
+    vx: (Math.random()-0.5)*0.4,
+    vy: (Math.random()-0.5)*0.4,
+    r: Math.random()*2+0.5,
+    alpha: Math.random()*0.5+0.1,
+    color: Math.random()>0.7 ? getComputedStyle(document.documentElement).getPropertyValue('--red').trim() : getComputedStyle(document.documentElement).getPropertyValue('--cyan').trim()
+  };
+}
+
+function initKonamiChars(){
+  konamiChars = [];
+  const cols = Math.floor(bgCanvas.width/16);
+  for(let i=0;i<cols;i++){
+    konamiChars.push({x:i*16,y:Math.random()*bgCanvas.height,speed:2+Math.random()*3,chars:[]});
+    for(let j=0;j<30;j++) konamiChars[i].chars.push(Math.random()>0.5?'1':'0');
+  }
+}
+
+let bgAnimId;
+function bgLoop(){
+  bgAnimId = requestAnimationFrame(bgLoop);
+  bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
+
+  if(S.konamiActive){
+    bgCtx.fillStyle='rgba(0,8,0,0.05)';
+    bgCtx.fillRect(0,0,bgCanvas.width,bgCanvas.height);
+    bgCtx.font='13px '+getComputedStyle(document.body).getPropertyValue('--font-mono');
+    konamiChars.forEach(col=>{
+      col.chars.forEach((c,i)=>{
+        const alpha = 1-(i/col.chars.length);
+        bgCtx.fillStyle=`rgba(0,255,100,${alpha*0.7})`;
+        bgCtx.fillText(c, col.x, col.y - i*14);
+        if(Math.random()<0.05) col.chars[i]=Math.random()>0.5?'1':'0';
+      });
+      col.y+=col.speed;
+      if(col.y > bgCanvas.height+200) col.y = -10;
+    });
+    return;
+  }
+
+  // Grid
+  bgCtx.strokeStyle='rgba(58,72,106,0.12)';
+  bgCtx.lineWidth=1;
+  const gsize=50;
+  for(let x=0;x<bgCanvas.width;x+=gsize){
+    bgCtx.beginPath();bgCtx.moveTo(x,0);bgCtx.lineTo(x,bgCanvas.height);bgCtx.stroke();
+  }
+  for(let y=0;y<bgCanvas.height;y+=gsize){
+    bgCtx.beginPath();bgCtx.moveTo(0,y);bgCtx.lineTo(bgCanvas.width,y);bgCtx.stroke();
+  }
+
+  // Particles
+  if(S.settings.particles){
+    particles.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0)p.x=bgCanvas.width;
+      if(p.x>bgCanvas.width)p.x=0;
+      if(p.y<0)p.y=bgCanvas.height;
+      if(p.y>bgCanvas.height)p.y=0;
+      bgCtx.beginPath();
+      bgCtx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      bgCtx.fillStyle=p.color;
+      bgCtx.globalAlpha=p.alpha;
+      bgCtx.fill();
+      bgCtx.globalAlpha=1;
+    });
+  }
+}
+
+// ================================================================
+// CURSOR TRAIL
+// ================================================================
+const trailCanvas = document.getElementById('trailCanvas');
+const trailCtx = trailCanvas.getContext('2d');
+let trail = [];
+let mouseX=0, mouseY=0;
+const cursor = document.getElementById('cursor');
+const cursorDot = document.getElementById('cursor-dot');
+
+document.addEventListener('mousemove', e=>{
+  mouseX=e.clientX; mouseY=e.clientY;
+  cursor.style.left=e.clientX+'px';
+  cursor.style.top=e.clientY+'px';
+  cursorDot.style.left=e.clientX+'px';
+  cursorDot.style.top=e.clientY+'px';
+  if(S.settings.trail) trail.push({x:e.clientX,y:e.clientY,age:0});
+});
+
+document.addEventListener('touchmove', e=>{
+  const t=e.touches[0];
+  cursor.style.left=t.clientX+'px';
+  cursor.style.top=t.clientY+'px';
+  cursorDot.style.left=t.clientX+'px';
+  cursorDot.style.top=t.clientY+'px';
+},{passive:true});
+
+function trailLoop(){
+  requestAnimationFrame(trailLoop);
+  trailCtx.clearRect(0,0,trailCanvas.width,trailCanvas.height);
+  if(!S.settings.trail) return;
+  trail = trail.filter(p=>p.age<25);
+  trail.forEach(p=>{
+    p.age++;
+    const alpha = (1-p.age/25)*0.6;
+    const r = (1-p.age/25)*4;
+    const color = S.konamiActive ? '0,255,100' : '0,255,247';
+    trailCtx.beginPath();
+    trailCtx.arc(p.x,p.y,r,0,Math.PI*2);
+    trailCtx.fillStyle=`rgba(${color},${alpha})`;
+    trailCtx.fill();
+  });
+}
+
+// ================================================================
+// GAME LOGIC
+// ================================================================
+function selectMode(m){
+  S.mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('mode-'+m).classList.add('selected');
+  const oInput = document.getElementById('player-o-name');
+  if(m!=='pvp' && oInput.value==='Player 2') oInput.value = m.toUpperCase()+' AI';
+  else if(m==='pvp' && oInput.value.includes('AI')) oInput.value = 'Player 2';
+}
+
+function startGame(){
+  if(!S.mode){ toast('Select a game mode first','warning'); return; }
+  S.players.X = document.getElementById('player-x-name').value.trim() || 'Player 1';
+  S.players.O = document.getElementById('player-o-name').value.trim() || (S.mode==='pvp'?'Player 2': S.mode.toUpperCase()+' AI');
+  S.sessionScores = {X:0,O:0,draws:0};
+  checkAchievement('night_shift');
+  checkAchievement('early_riser');
+  resetBoard();
+  showScreen('game');
+  updateScoreDisplay();
+  document.getElementById('badge-x').textContent = S.players.X;
+  document.getElementById('badge-o').textContent = S.players.O;
+}
+
+function resetBoard(){
+  S.board = Array(9).fill(null);
+  S.currentPlayer = 'X';
+  S.gameActive = true;
+  S.winner = null;
+  S.winLine = null;
+  S.moveCount = 0;
+  S.gameStartTime = Date.now();
+  S.centerMoveFirst = false;
+  document.querySelectorAll('.cell').forEach(c=>{
+    c.textContent='';
+    c.className='cell';
+  });
+  setStatus('');
+  updateBadges();
+}
+
+function cellClick(i){
+  if(!S.gameActive || S.board[i]) return;
+  if(S.mode!=='pvp' && S.currentPlayer==='O') return;
+  makeMove(i);
+}
+
+function makeMove(i){
+  if(!S.gameActive || S.board[i]) return;
+  S.board[i]=S.currentPlayer;
+  S.moveCount++;
+  if(S.moveCount===1 && i===4) S.centerMoveFirst=true;
+  const cell = document.querySelectorAll('.cell')[i];
+  cell.textContent = S.currentPlayer;
+  cell.classList.add(S.currentPlayer.toLowerCase(), 'taken');
+
+  const winner = checkWinner(S.board);
+  if(winner){
+    endGame(winner);
+  } else if(S.board.every(c=>c)){
+    endGame('draw');
+  } else {
+    S.currentPlayer = S.currentPlayer==='X'?'O':'X';
+    updateBadges();
+    if(S.mode!=='pvp' && S.currentPlayer==='O') setTimeout(aiMove, S.settings.aiDelay);
+  }
+}
+
+function checkWinner(board){
+  for(const [a,b,c] of WIN_LINES){
+    if(board[a] && board[a]===board[b] && board[a]===board[c]) return board[a];
+  }
+  return null;
+}
+
+function getWinLine(board){
+  for(const line of WIN_LINES){
+    const [a,b,c]=line;
+    if(board[a] && board[a]===board[b] && board[a]===board[c]) return line;
+  }
+  return null;
+}
+
+function endGame(result){
+  S.gameActive = false;
+  S.winner = result;
+  S.winLine = result!=='draw' ? getWinLine(S.board) : null;
+  const elapsed = (Date.now()-S.gameStartTime)/1000;
+
+  if(S.winLine){
+    S.winLine.forEach(i=>document.querySelectorAll('.cell')[i].classList.add('win'));
+  }
+
+  let msg = '';
+  if(result==='draw'){
+    msg = '⚡ DRAW';
+    S.sessionScores.draws++;
+    S.stats.totalDraws++;
+    S.stats.streak=0;
+    recordAIGame('draw');
+  } else {
+    const winnerName = result==='X'?S.players.X:S.players.O;
+    const isXWin = result==='X';
+    msg = `${winnerName} WINS`;
+    if(isXWin){S.sessionScores.X++;}else{S.sessionScores.O++;}
+    S.stats.totalWins++;
+    S.stats.streak++;
+    if(S.stats.streak>S.stats.bestStreak) S.stats.bestStreak=S.stats.streak;
+    updatePlayerStat(winnerName,'wins');
+    updatePlayerStat(isXWin?S.players.O:S.players.X,'losses');
+    if(S.mode!=='pvp'){
+      if(result==='X') recordAIGame('win');
+      else recordAIGame('loss');
+    }
+    // Achievements checks
+    if(S.stats.totalWins===1) checkAchievement('first_blood');
+    if(S.stats.streak>=3) checkAchievement('hat_trick');
+    if(S.stats.streak>=5) checkAchievement('on_a_roll');
+    if(S.stats.streak>=10) checkAchievement('dominator');
+    if(S.moveCount===5) checkAchievement('quick_draw');
+    if(elapsed<8) checkAchievement('speed_demon');
+    checkCornerLord();
+    if(S.centerMoveFirst && result===S.currentPlayer){
+      S.stats.centerWins=(S.stats.centerWins||0)+1;
+      if(S.stats.centerWins>=10) checkAchievement('center_stage');
+    }
+  }
+
+  if(result==='draw'){S.stats.totalDraws=(S.stats.totalDraws||0);}
+  else{
+    const loser = result==='X'?S.players.O:S.players.X;
+    const loserStats = getPlayerStat(loser);
+    if(loserStats.losses>=25) checkAchievement('die_hard');
+  }
+
+  S.stats.totalGames++;
+  checkGlobalAchievements();
+  saveStats();
+  updateScoreDisplay();
+  setStatus(msg);
+  document.getElementById('score-x').textContent=S.sessionScores.X;
+  document.getElementById('score-o').textContent=S.sessionScores.O;
+  document.getElementById('score-d').textContent=S.sessionScores.draws;
+}
+
+function checkCornerLord(){
+  const corners=[0,2,6,8];
+  const allClaimed = corners.every(i=>S.board[i]);
+  if(allClaimed) checkAchievement('corner_lord');
+}
+
+function recordAIGame(result){
+  if(S.mode==='pvp') return;
+  const m = S.stats.ai[S.mode];
+  if(!m) return;
+  m.games++;
+  if(result==='win'){m.wins++;}
+  else if(result==='loss'){m.losses++;}
+  else{m.draws++;}
+  // AI achievements
+  const totalAIWins = S.stats.ai.easy.wins+S.stats.ai.normal.wins+S.stats.ai.hard.wins;
+  if(totalAIWins>=10) checkAchievement('ai_slayer');
+  if(totalAIWins>=50) checkAchievement('ai_hunter');
+  if(totalAIWins>=100) checkAchievement('ai_terminator');
+  if(S.stats.ai.easy.wins>=10) checkAchievement('easy_peasy');
+  if(S.stats.ai.normal.wins>=10) checkAchievement('mid_menace');
+  if(S.stats.ai.hard.wins>=10) checkAchievement('hard_boiled');
+  if(S.stats.ai.hard.wins>=50) checkAchievement('hard_corps');
+  if(S.stats.ai.hard.games>=100) checkAchievement('hard_century');
+}
+
+function updatePlayerStat(name, field){
+  if(!S.stats.players[name]) S.stats.players[name]={wins:0,losses:0,draws:0,games:0};
+  S.stats.players[name][field]++;
+  S.stats.players[name].games++;
+}
+
+function getPlayerStat(name){
+  return S.stats.players[name]||{wins:0,losses:0,draws:0,games:0};
+}
+
+function checkGlobalAchievements(){
+  const t=S.stats.totalGames;
+  if(t>=50) checkAchievement('veteran');
+  if(t>=100) checkAchievement('century');
+  if(t>=200) checkAchievement('double_c');
+  if(t>=500) checkAchievement('grinder');
+  if(t>=1000) checkAchievement('legend');
+  if(t>=1250) checkAchievement('final_form');
+  if(S.stats.totalDraws>=10) checkAchievement('negotiator');
+  // Stubborn
+  for(const [n,d] of Object.entries(S.stats.players||{})){
+    if(d.games>=50) checkAchievement('stubborn');
+  }
+}
+
+// ================================================================
+// AI
+// ================================================================
+function aiMove(){
+  if(!S.gameActive) return;
+  const empty = S.board.map((v,i)=>v?null:i).filter(v=>v!==null);
+  if(!empty.length) return;
+  let idx;
+  if(S.mode==='easy') idx=empty[Math.floor(Math.random()*empty.length)];
+  else if(S.mode==='normal') idx=Math.random()<0.5?bestMove(S.board):empty[Math.floor(Math.random()*empty.length)];
+  else idx=bestMove(S.board);
+  makeMove(idx);
+}
+
+function bestMove(board){
+  let best=-Infinity, move=0;
+  board.forEach((v,i)=>{
+    if(!v){
+      board[i]='O';
+      const s=minimax(board,0,false);
+      board[i]=null;
+      if(s>best){best=s;move=i;}
+    }
+  });
+  return move;
+}
+
+function minimax(board,depth,isMax){
+  const w=checkWinner(board);
+  if(w==='O') return 10-depth;
+  if(w==='X') return depth-10;
+  if(board.every(c=>c)) return 0;
+  if(isMax){
+    let b=-Infinity;
+    board.forEach((v,i)=>{if(!v){board[i]='O';b=Math.max(b,minimax(board,depth+1,false));board[i]=null;}});
+    return b;
+  }else{
+    let b=Infinity;
+    board.forEach((v,i)=>{if(!v){board[i]='X';b=Math.min(b,minimax(board,depth+1,true));board[i]=null;}});
+    return b;
+  }
+}
+
+// ================================================================
+// ACHIEVEMENTS
+// ================================================================
+function checkAchievement(id){
+  if(!S.stats.achievements) S.stats.achievements={};
+  if(S.stats.achievements[id]) return;
+  S.stats.achievements[id]=Date.now();
+  const a = ACHIEVEMENTS.find(a=>a.id===id);
+  if(!a) return;
+  showAchievementPopup(a);
+  saveStats();
+  const unlocked = Object.keys(S.stats.achievements).length;
+  if(unlocked>=10) checkAchievement('collector');
+  if(unlocked>=20) checkAchievement('the_dragon');
+}
+
+let achPopTimer;
+function showAchievementPopup(a){
+  S.achQueue.push(a);
+  if(!S.achShowing) nextAchPopup();
+}
+
+function nextAchPopup(){
+  if(!S.achQueue.length){S.achShowing=false;return;}
+  S.achShowing=true;
+  const a=S.achQueue.shift();
+  const pop=document.getElementById('ach-popup');
+  document.getElementById('pop-icon').textContent=a.icon;
+  document.getElementById('pop-name').textContent=a.name;
+  document.getElementById('pop-desc').textContent=a.hidden?'???':a.desc;
+  pop.classList.add('show');
+  clearTimeout(achPopTimer);
+  achPopTimer=setTimeout(()=>{pop.classList.remove('show');setTimeout(nextAchPopup,400);},3500);
+}
+
+function renderAchievements(){
+  const unlocked = S.stats.achievements||{};
+  const count = Object.keys(unlocked).length;
+  document.getElementById('ach-count').textContent=`${count}/${ACHIEVEMENTS.length}`;
+  const container = document.getElementById('ach-content');
+  container.innerHTML='';
+  ACHIEVEMENTS.forEach(a=>{
+    const isUnlocked = !!unlocked[a.id];
+    const isHidden = a.hidden && !isUnlocked;
+    const div=document.createElement('div');
+    div.className='ach-item'+(isUnlocked?' unlocked':'')+(isHidden?' hidden':'');
+    div.innerHTML=`
+      <div class="ach-icon">${isHidden?'?':a.icon}</div>
+      <div class="ach-info">
+        <div class="name">${isHidden?'???':a.name}</div>
+        <div class="desc">${isHidden?'Hidden Achievement':isUnlocked?a.desc||'???':a.desc||''}</div>
+      </div>
+      <div class="${isUnlocked?'ach-badge':'ach-progress'}">${isUnlocked?'✓ UNLOCKED':''}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ================================================================
+// STATS DISPLAY
+// ================================================================
+function renderStats(){
+  const st=S.stats;
+  let html=`
+  <div class="stats-section">
+    <h3>// Global</h3>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="n">${st.totalGames}</div><div class="l">GAMES</div></div>
+      <div class="stat-box"><div class="n">${st.totalWins||0}</div><div class="l">WINS</div></div>
+      <div class="stat-box"><div class="n">${st.totalDraws||0}</div><div class="l">DRAWS</div></div>
+    </div>
+    <div class="stats-row"><span class="label">Best Streak</span><span class="value">${st.bestStreak||0}</span></div>
+    <div class="stats-row"><span class="label">Current Streak</span><span class="value">${st.streak||0}</span></div>
+  </div>
+  <div class="stats-section">
+    <h3>// AI Record</h3>`;
+  ['easy','normal','hard'].forEach(m=>{
+    const a=st.ai[m];
+    html+=`<div class="stats-row"><span class="label">${m.toUpperCase()}</span><span class="value">${a.wins}W / ${a.losses}L / ${a.draws}D (${a.games} games)</span></div>`;
+  });
+  html+='</div>';
+  const players=Object.entries(st.players||{});
+  if(players.length){
+    html+='<div class="stats-section"><h3>// Players</h3>';
+    players.forEach(([n,d])=>{
+      html+=`<div class="stats-row"><span class="label">${n}</span><span class="value">${d.wins}W / ${d.losses}L / ${d.draws||0}D</span></div>`;
+    });
+    html+='</div>';
+  }
+  document.getElementById('stats-content').innerHTML=html;
+}
+
+// ================================================================
+// EXPORT / IMPORT
+// ================================================================
+function exportStats(){
+  const data = JSON.stringify(S.stats, null, 2);
+  const blob = new Blob([data], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='lazy-dragon-ttt-stats.txt';
+  a.click();
+  checkAchievement('stats_addict');
+  toast('Stats exported!','success');
+  S.usedCmds.add('export');
+  checkCmdAchievement();
+}
+
+function importStats(input){
+  const file=input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      S.stats={...defaultStats(),...d};
+      saveStats();
+      checkAchievement('archivist');
+      toast('Stats imported!','success');
+      input.value='';
+    }catch(e){ toast('Invalid stats file','error'); }
+  };
+  reader.readAsText(file);
+}
+
+function confirmReset(){
+  if(confirm('Reset ALL stats? This cannot be undone.')){
+    S.stats=defaultStats();
+    saveStats();
+    toast('All stats reset','warning');
+    renderStats();
+  }
+}
+
+function resetSessionScores(){
+  S.sessionScores={X:0,O:0,draws:0};
+  updateScoreDisplay();
+  toast('Session scores reset');
+}
+
+// ================================================================
+// SETTINGS
+// ================================================================
+function toggleSetting(key){
+  S.settings[key]=!S.settings[key];
+  const el=document.getElementById('toggle-'+key);
+  if(el) el.classList.toggle('on',S.settings[key]);
+  if(key==='particles'&&!S.settings.particles){
+    bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
+  }
+  localStorage.setItem('ldt_settings',JSON.stringify(S.settings));
+}
+
+function setParticleCount(v){
+  S.settings.particleCount=parseInt(v);
+  initParticles();
+  localStorage.setItem('ldt_settings',JSON.stringify(S.settings));
+}
+
+function loadSettings(){
+  try{
+    const raw=localStorage.getItem('ldt_settings');
+    if(raw) S.settings={...S.settings,...JSON.parse(raw)};
+  }catch(e){}
+  document.getElementById('toggle-particles').classList.toggle('on',S.settings.particles);
+  document.getElementById('toggle-trail').classList.toggle('on',S.settings.trail);
+  document.getElementById('range-particles').value=S.settings.particleCount;
+}
+
+// ================================================================
+// COLORS
+// ================================================================
+function setColor(prop, val, key){
+  document.documentElement.style.setProperty(prop, val);
+  S.colorsChanged.add(key);
+  if(S.colorsChanged.size>=5) checkAchievement('color_master');
+  saveColorConfig();
+}
+
+function resetColors(){
+  const defaults={
+    '--bg':'#182433','--dark':'#3a486a','--cyan':'#00fff7',
+    '--red':'#ff153f','--crimson':'#712637','--x-color':'#00fff7',
+    '--o-color':'#ff153f','--text':'#00fff7','--grid':'#3a486a'
+  };
+  for(const [k,v] of Object.entries(defaults)){
+    document.documentElement.style.setProperty(k,v);
+  }
+  document.getElementById('cp-bg').value='#182433';
+  document.getElementById('cp-dark').value='#3a486a';
+  document.getElementById('cp-cyan').value='#00fff7';
+  document.getElementById('cp-red').value='#ff153f';
+  document.getElementById('cp-crimson').value='#712637';
+  localStorage.removeItem('ldt_colors');
+  toast('Colors reset');
+}
+
+function saveColorConfig(){
+  const cfg={};
+  ['bg','dark','cyan','red','crimson'].forEach(k=>{
+    cfg[k]=document.getElementById('cp-'+k).value;
+  });
+  localStorage.setItem('ldt_colors',JSON.stringify(cfg));
+}
+
+function loadColors(){
+  try{
+    const raw=localStorage.getItem('ldt_colors');
+    if(!raw) return;
+    const cfg=JSON.parse(raw);
+    if(cfg.bg){document.getElementById('cp-bg').value=cfg.bg;document.documentElement.style.setProperty('--bg',cfg.bg);}
+    if(cfg.dark){document.getElementById('cp-dark').value=cfg.dark;document.documentElement.style.setProperty('--dark',cfg.dark);}
+    if(cfg.cyan){document.getElementById('cp-cyan').value=cfg.cyan;document.documentElement.style.setProperty('--cyan',cfg.cyan);document.documentElement.style.setProperty('--x-color',cfg.cyan);}
+    if(cfg.red){document.getElementById('cp-red').value=cfg.red;document.documentElement.style.setProperty('--red',cfg.red);document.documentElement.style.setProperty('--o-color',cfg.red);}
+    if(cfg.crimson){document.getElementById('cp-crimson').value=cfg.crimson;document.documentElement.style.setProperty('--crimson',cfg.crimson);}
+  }catch(e){}
+}
+
+// ================================================================
+// KONAMI
+// ================================================================
+const KONAMI=[38,38,40,40,37,39,37,39,66,65];
+document.addEventListener('keydown',e=>{
+  // Console toggle
+  if(e.key==='`'||e.key==='~'){
+    e.preventDefault();
+    toggleConsole();
+    return;
+  }
+  if(e.key==='Escape'){
+    if(S.consoleOpen){toggleConsole();return;}
+    document.querySelectorAll('.modal.open').forEach(m=>m.classList.remove('open'));
+    return;
+  }
+  // Konami
+  S.konamiSeq.push(e.keyCode);
+  if(S.konamiSeq.length>10) S.konamiSeq.shift();
+  if(S.konamiSeq.join(',')===KONAMI.join(',')){
+    toggleKonami();
+  }
+});
+
+function toggleKonami(force){
+  S.konamiActive = force!==undefined ? force : !S.konamiActive;
+  document.body.classList.toggle('konami',S.konamiActive);
+  if(S.konamiActive){
+    initKonamiChars();
+    checkAchievement('konami');
+    toast('⬆⬆⬇⬇⬅➡⬅➡BA — KONAMI ACTIVATED','success');
+  } else {
+    toast('KONAMI MODE OFF');
+    bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
+  }
+  // Update cursor color
+  const color = S.konamiActive ? '#00ff64' : 'var(--cyan)';
+  document.getElementById('cursor').style.setProperty('--cursor-color',color);
+}
+
+// ================================================================
+// CMD CONSOLE
+// ================================================================
+function toggleConsole(){
+  S.consoleOpen=!S.consoleOpen;
+  document.getElementById('console').classList.toggle('open',S.consoleOpen);
+  if(S.consoleOpen){
+    setTimeout(()=>document.getElementById('console-input').focus(),300);
+    if(!S.stats.achievements?.console_cowboy) checkAchievement('console_cowboy');
+  }
+}
+
+function conPrint(text, cls='ok'){
+  const out=document.getElementById('console-output');
+  const line=document.createElement('div');
+  line.className='con-line '+cls;
+  line.textContent=text;
+  out.appendChild(line);
+  out.scrollTop=out.scrollHeight;
+}
+
+function conPrintRaw(html){
+  const out=document.getElementById('console-output');
+  const line=document.createElement('div');
+  line.className='con-line';
+  line.innerHTML=html;
+  out.appendChild(line);
+  out.scrollTop=out.scrollHeight;
+}
+
+document.getElementById('console-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    const cmd=e.target.value.trim();
+    if(!cmd) return;
+    S.conHistory.unshift(cmd);
+    S.conHistIdx=-1;
+    e.target.value='';
+    conPrint('dragon@ttt:~$ '+cmd,'cmd');
+    processCommand(cmd.toLowerCase());
+  }
+  if(e.key==='ArrowUp'){
+    e.preventDefault();
+    if(S.conHistIdx<S.conHistory.length-1){
+      S.conHistIdx++;
+      e.target.value=S.conHistory[S.conHistIdx];
+    }
+  }
+  if(e.key==='ArrowDown'){
+    e.preventDefault();
+    if(S.conHistIdx>0){S.conHistIdx--;e.target.value=S.conHistory[S.conHistIdx];}
+    else{S.conHistIdx=-1;e.target.value='';}
+  }
+});
+
+function checkCmdAchievement(){
+  if(S.usedCmds.size>=10) checkAchievement('commander');
+}
+
+function processCommand(raw){
+  const parts=raw.trim().split(/\s+/);
+  const cmd=parts[0];
+  const args=parts.slice(1);
+  S.usedCmds.add(cmd);
+  checkCmdAchievement();
+
+  // DevMode sequence
+  if(raw===S.devSeq[S.devStep]){
+    S.devStep++;
+    if(S.devStep>=S.devSeq.length){
+      S.devMode=true;
+      document.getElementById('devmode-badge').classList.add('show');
+      conPrint('> DevMode ENABLED. Stat manipulation unlocked.','warn');
+      conPrint('> Type "devhelp" for dev commands.','warn');
+      return;
+    }else{
+      conPrint('> Step '+(S.devStep)+'/'+S.devSeq.length+' complete...','warn');
+      return;
+    }
+  }
+
+  switch(cmd){
+    case 'help':
+      conPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━','dim');
+      conPrint('  LAZY DRAGON TERMINAL — Available Commands','ok');
+      conPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━','dim');
+      [
+        ['help','Show this help'],['clear','Clear console output'],
+        ['stats','Show all stats'],['stats player <name>','Show player stats'],
+        ['stats ai','Show AI record'],['reset all','Reset all stats'],
+        ['reset player <name>','Reset a player\'s stats'],
+        ['reset ai [mode]','Reset AI stats (easy/normal/hard or all)'],
+        ['export','Export stats to file'],['import','Import stats from file'],
+        ['toggle particles','Toggle particle system on/off'],
+        ['toggle trail','Toggle cursor trail on/off'],
+        ['toggle konami','Toggle konami mode'],
+        ['set name <1|2> <name>','Set player 1 or 2 name'],
+        ['achievements','Show unlocked achievements'],
+        ['achievements all','Show all achievements'],
+        ['games','Show total games played'],
+        ['version','Show version info'],['about','About this game'],
+        ['color reset','Reset colors to default'],
+        ['devmode','—'],
+      ].forEach(([c,d])=>{
+        conPrint(`  ${c.padEnd(30)} ${d}`,'dim');
+      });
+      conPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━','dim');
+      break;
+
+    case 'clear':
+      document.getElementById('console-output').innerHTML='';
+      break;
+
+    case 'stats':
+      if(args[0]==='player'&&args[1]){
+        const n=args.slice(1).join(' ');
+        const d=S.stats.players[n]||S.stats.players[Object.keys(S.stats.players).find(k=>k.toLowerCase()===n.toLowerCase())];
+        if(d){conPrint(`[${n}] W:${d.wins} L:${d.losses} D:${d.draws||0} Total:${d.games}`);}
+        else{conPrint('Player not found','err');}
+      } else if(args[0]==='ai'){
+        ['easy','normal','hard'].forEach(m=>{
+          const a=S.stats.ai[m];
+          conPrint(`[AI:${m.toUpperCase()}] W:${a.wins} L:${a.losses} D:${a.draws} Games:${a.games}`);
+        });
+      } else {
+        conPrint(`Total Games: ${S.stats.totalGames}`);
+        conPrint(`Wins: ${S.stats.totalWins||0} | Draws: ${S.stats.totalDraws||0}`);
+        conPrint(`Best Streak: ${S.stats.bestStreak||0} | Current: ${S.stats.streak||0}`);
+      }
+      break;
+
+    case 'reset':
+      if(args[0]==='all'){
+        if(confirm('Reset ALL stats?')){S.stats=defaultStats();saveStats();conPrint('All stats reset','warn');}
+      } else if(args[0]==='player'&&args[1]){
+        const n=args.slice(1).join(' ');
+        const key=Object.keys(S.stats.players).find(k=>k.toLowerCase()===n.toLowerCase());
+        if(key){delete S.stats.players[key];saveStats();conPrint(`Player "${key}" stats reset`);}
+        else{conPrint('Player not found','err');}
+      } else if(args[0]==='ai'){
+        const m=args[1];
+        if(m&&S.stats.ai[m]){S.stats.ai[m]={wins:0,losses:0,draws:0,games:0};saveStats();conPrint(`AI [${m}] stats reset`);}
+        else{['easy','normal','hard'].forEach(m=>{S.stats.ai[m]={wins:0,losses:0,draws:0,games:0};});saveStats();conPrint('All AI stats reset');}
+      } else {conPrint('Usage: reset all | reset player <name> | reset ai [mode]','err');}
+      break;
+
+    case 'export':
+      exportStats();
+      break;
+
+    case 'import':
+      document.getElementById('file-import').click();
+      conPrint('File picker opened...');
+      break;
+
+    case 'toggle':
+      if(args[0]==='particles'){toggleSetting('particles');conPrint('Particles: '+(S.settings.particles?'ON':'OFF'));}
+      else if(args[0]==='trail'){toggleSetting('trail');conPrint('Trail: '+(S.settings.trail?'ON':'OFF'));}
+      else if(args[0]==='konami'){toggleKonami();conPrint('Konami: '+(S.konamiActive?'ON':'OFF'));}
+      else conPrint('Unknown toggle. Try: particles | trail | konami','err');
+      break;
+
+    case 'set':
+      if(args[0]==='stat'&&S.devMode){
+        const [,target,...rest]=args;
+        if(target==='player'&&rest.length>=3){
+          const val=parseInt(rest[rest.length-1]);
+          const field=rest[rest.length-2];
+          const name=rest.slice(0,rest.length-2).join(' ');
+          if(!S.stats.players[name]) S.stats.players[name]={wins:0,losses:0,draws:0,games:0};
+          if(S.stats.players[name][field]!==undefined){S.stats.players[name][field]=val;saveStats();conPrint(`Set ${name}.${field} = ${val}`,'warn');checkAchievement('dragons_bane');}
+          else conPrint('Unknown field: '+field,'err');
+        } else if(target==='ai'&&rest.length>=3){
+          const [mode,field,valStr]=rest;
+          const val=parseInt(valStr);
+          if(S.stats.ai[mode]&&S.stats.ai[mode][field]!==undefined){S.stats.ai[mode][field]=val;saveStats();conPrint(`Set ai.${mode}.${field} = ${val}`,'warn');checkAchievement('dragons_bane');}
+          else conPrint('Unknown mode/field','err');
+        } else if(target==='total'&&rest.length>=2){
+          const [field,valStr]=rest;
+          const val=parseInt(valStr);
+          const map={games:'totalGames',wins:'totalWins',draws:'totalDraws',streak:'streak',beststreak:'bestStreak'};
+          if(map[field]){S.stats[map[field]]=val;saveStats();conPrint(`Set total.${field} = ${val}`,'warn');checkAchievement('dragons_bane');}
+          else conPrint('Unknown field. Try: games|wins|draws|streak|beststreak','err');
+        } else conPrint('Usage: set stat ai <mode> <field> <value>  |  set stat player <name> <field> <value>','err');
+      } else if(args[0]==='stat'&&!S.devMode){
+        conPrint('DevMode not active. Run the sequence first.','err');
+      } else if(args[0]==='name'&&args[1]&&args[2]){
+        const n=args.slice(2).join(' ');
+        if(args[1]==='1'||args[1]==='x'){
+          document.getElementById('player-x-name').value=n;
+          S.players.X=n;
+          document.getElementById('badge-x').textContent=n;
+          conPrint('Player 1 (X) set to: '+n);
+        } else {
+          document.getElementById('player-o-name').value=n;
+          S.players.O=n;
+          document.getElementById('badge-o').textContent=n;
+          conPrint('Player 2 (O) set to: '+n);
+        }
+      } else conPrint('Usage: set name <1|2> <name>  |  set stat <target> <field> <value>','err');
+      break;
+
+    case 'achievements':
+      if(args[0]==='all'){
+        ACHIEVEMENTS.forEach(a=>{
+          const u=S.stats.achievements?.[a.id];
+          conPrint(`[${u?'✓':'·'}] ${a.hidden&&!u?'???':a.name}`,u?'ok':'dim');
+        });
+      } else {
+        const u=Object.entries(S.stats.achievements||{});
+        if(!u.length){conPrint('No achievements yet. Keep playing!','dim');}
+        else{u.forEach(([id])=>{const a=ACHIEVEMENTS.find(x=>x.id===id);if(a)conPrint(`✓ ${a.name}`);});}
+      }
+      break;
+
+    case 'games':
+      conPrint('Total games played: '+S.stats.totalGames);
+      break;
+
+    case 'version':
+      conPrint('TicTacToe v1.0 // 怠竜 Tearyū — The Lazy Dragon','ok');
+      break;
+
+    case 'about':
+      conPrint('━━━━━━━━━━━━━━━━━━━━━━','dim');
+      conPrint('  怠竜 Tearyū / The Lazy Dragon','ok');
+      conPrint('  by Craig (The Lazy Dragon)','dim');
+      conPrint('  Discord: this.isnt.craig_','dim');
+      conPrint('  Reddit: u/Red_DevilAS07','dim');
+      conPrint('━━━━━━━━━━━━━━━━━━━━━━','dim');
+      break;
+
+    case 'color':
+      if(args[0]==='reset'){resetColors();conPrint('Colors reset to default');}
+      else conPrint('Usage: color reset','err');
+      break;
+
+    case 'konami':
+      toggleKonami();
+      conPrint('Konami: '+(S.konamiActive?'ON':'OFF'));
+      break;
+
+    case 'devmode':
+      conPrint('Hint: npm install devmode','dim');
+      break;
+
+    case 'devhelp':
+      if(!S.devMode){conPrint('DevMode not active','err');break;}
+      conPrint('DEV COMMANDS:','warn');
+      conPrint('  set stat player <name> <wins|losses|draws|games> <value>');
+      conPrint('  set stat ai <easy|normal|hard> <wins|losses|draws|games> <value>');
+      conPrint('  set stat total <games|wins|draws|streak|beststreak> <value>');
+      conPrint('  unlock achievement <id>');
+      conPrint('  unlock all achievements');
+      conPrint('  list achievements');
+      break;
+
+    // DEV COMMANDS (only when devMode active)
+    case 'unlock':
+      if(!S.devMode){conPrint('Access denied','err');break;}
+      if(args[0]==='achievement'&&args[1]){
+        const id=args[1];
+        const a=ACHIEVEMENTS.find(x=>x.id===id);
+        if(a){checkAchievement(id);conPrint('Unlocked: '+a.name);checkAchievement('dragons_bane');}
+        else conPrint('Achievement not found. Use "list achievements" to see IDs','err');
+      } else if(args[0]==='all'&&args[1]==='achievements'){
+        ACHIEVEMENTS.forEach(a=>checkAchievement(a.id));
+        checkAchievement('dragons_bane');
+        conPrint('All achievements unlocked','warn');
+      } else conPrint('Usage: unlock achievement <id> | unlock all achievements','err');
+      break;
+
+    case 'list':
+      if(!S.devMode){conPrint('Access denied','err');break;}
+      if(args[0]==='achievements'){
+        ACHIEVEMENTS.forEach(a=>conPrint(`  ${a.id.padEnd(20)} ${a.name}`,'dim'));
+      }
+      break;
+
+    default:
+      if(raw.startsWith('npm ')){
+        if(raw===S.devSeq[S.devStep]){/* handled above */}
+        else conPrint('bash: npm: step mismatch or unknown command','err');
+      } else {
+        conPrint('Command not found: '+cmd+' (type "help")','err');
+      }
+  }
+}
+
+// ================================================================
+// UI HELPERS
+// ================================================================
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  S.screen=id;
+}
+
+function goSetup(){
+  showScreen('setup');
+}
+
+function openModal(id){
+  if(id==='stats') renderStats();
+  if(id==='achievements') renderAchievements();
+  document.getElementById('modal-'+id).classList.add('open');
+}
+
+function closeModal(id){
+  document.getElementById('modal-'+id).classList.remove('open');
+}
+
+function toast(msg, type='success'){
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  t.textContent=msg;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.animation='toastOut 0.3s ease forwards';setTimeout(()=>t.remove(),300);},2500);
+}
+
+function setStatus(msg){
+  document.getElementById('game-status').textContent=msg;
+}
+
+function updateBadges(){
+  const bx=document.getElementById('badge-x');
+  const bo=document.getElementById('badge-o');
+  bx.className='player-badge '+(S.currentPlayer==='X'?'active-x':'inactive');
+  bo.className='player-badge '+(S.currentPlayer==='O'?'active-o':'inactive');
+}
+
+function updateScoreDisplay(){
+  document.getElementById('score-x').textContent=S.sessionScores.X;
+  document.getElementById('score-o').textContent=S.sessionScores.O;
+  document.getElementById('score-d').textContent=S.sessionScores.draws;
+}
+
+function checkAchTime(){
+  const h=new Date().getHours();
+  if(h>=0&&h<4) checkAchievement('night_shift');
+  if(h<6) checkAchievement('early_riser');
+}
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});
+});
+
+// Touch support for cursor
+document.addEventListener('touchstart',e=>{
+  const t=e.touches[0];
+  cursor.style.left=t.clientX+'px';
+  cursor.style.top=t.clientY+'px';
+  cursorDot.style.left=t.clientX+'px';
+  cursorDot.style.top=t.clientY+'px';
+},{passive:true});
+
+// ================================================================
+// INIT
+// ================================================================
+function init(){
+  loadStats();
+  loadSettings();
+  loadColors();
+  initParticles();
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  bgLoop();
+  trailLoop();
+  // Default mode
+  selectMode('pvp');
+  checkAchTime();
+  console.log('%c怠竜 TicTacToe // The Lazy Dragon','color:#00fff7;font-size:14px;font-weight:bold;');
+  console.log('%cPress ~ to open terminal. Konami code is active.','color:#3a486a;font-size:11px;');
+}
+
+init();
+</script>
+</body>
+</html>
