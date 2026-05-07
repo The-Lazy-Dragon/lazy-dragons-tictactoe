@@ -140,6 +140,6 @@ Just a BSc IT student who builds things way more complex than they need to be an
 
 **⭐ Star the repo if the Konami code made you smile**
 
-*Built with zero frameworks and questionable life choices ;) actually really built at 3 am cus i had nothing to do and i couldnt sleep*
+*Built with zero frameworks and questionable life choices ;) —  actually really built at 3 am cus i had nothing to do and i couldnt sleep*
 
 </div>
