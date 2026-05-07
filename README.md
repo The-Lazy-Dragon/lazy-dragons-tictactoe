@@ -15,7 +15,7 @@
 [![No Framework](https://img.shields.io/badge/Framework-None%20Needed-%233a486a?style=flat-square)](#)
 [![Achievements](https://img.shields.io/badge/Achievements-35-%23712637?style=flat-square)](#achievements)
 
-<img src="https://img.shields.io/badge/GGMU-%23ff153f?style=flat-square&logo=data:image/png;base64," alt="">
+<img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNjVuY3JvenZ6NHg4aHo1Y2FzMXh4azd2cndpdjRnbjdtM2Q2YzB2MCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l7WwcCAo54gmMIK9KX/giphy.gif" alt="">
 
 *"It's just TicTacToe." — someone who has never played this*
 
@@ -104,13 +104,11 @@ No npm install. No build step. No dependencies. No node_modules folder eating yo
 
 ## 🌐 Play Online
 
-> Enable GitHub Pages in repo Settings → Pages → Deploy from `main` branch
-
-Then it'll be live at:
+Its live at:
 ```
 https://the-lazy-dragon.github.io/lazy-dragons-tictactoe/tictactoe.html
 ```
-
+***Try it lol***
 ---
 
 ## 🎨 Color Palette
@@ -129,7 +127,7 @@ https://the-lazy-dragon.github.io/lazy-dragons-tictactoe/tictactoe.html
 
 **The Lazy Dragon** · `怠竜 Tearyū`
 
-Just a BSc IT student from Biratnagar, Nepal who builds things way more complex than they need to be and calls it TicTacToe.
+Just a BSc IT student who builds things way more complex than they need to be and calls it TicTacToe.
 
 - Discord: `this.isnt.craig_`
 - Reddit: `u/Red_DevilAS07`
