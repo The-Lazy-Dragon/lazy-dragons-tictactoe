@@ -53,7 +53,7 @@ canvas{position:fixed;top:0;left:0;pointer-events:none;z-index:0;}
 /* INPUTS */
 .input-row{display:flex;gap:10px;margin-bottom:12px;align-items:center;}
 .input-label{font-size:10px;letter-spacing:2px;color:var(--dark);min-width:40px;text-transform:uppercase;}
-input[type=text]{background:rgba(58,72,106,0.3);border:1px solid var(--dark);border-radius:2px;color:var(--cyan);font-family:var(--font-mono);font-size:13px;padding:8px 12px;width:100%;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+input[type=text]{background:rgba(58,72,106,0.3);border:1px solid var(--dark);border-radius:2px;color:var(--cyan);font-family:var(--font-mono);font-size:13px;padding:8px 12px;width:100%;outline:none;transition:border-color 0.2s,box-shadow 0.2s;cursor:text;}
 input[type=text]:focus{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,255,247,0.2);}
 input[type=text]::placeholder{color:rgba(58,72,106,0.8);}
 
@@ -171,7 +171,7 @@ input[type=color]{width:32px;height:24px;border:1px solid var(--dark);border-rad
 #console-output::-webkit-scrollbar-thumb{background:var(--dark);}
 #console-input-row{display:flex;align-items:center;padding:6px 12px;border-top:1px solid rgba(58,72,106,0.3);}
 #console-prompt{color:var(--cyan);margin-right:8px;font-size:11px;}
-#console-input{flex:1;background:none;border:none;color:var(--cyan);font-family:var(--font-mono);font-size:11px;outline:none;caret-color:var(--cyan);}
+#console-input{flex:1;background:none;border:none;color:var(--cyan);font-family:var(--font-mono);font-size:11px;outline:none;caret-color:var(--cyan);cursor:text;}
 .con-line{margin:0;}
 .con-line.cmd{color:rgba(0,255,247,0.5);}
 .con-line.ok{color:var(--cyan);}
@@ -480,8 +480,8 @@ const ACHIEVEMENTS = [
   {id:'die_hard',icon:'💔',name:'Die Hard',desc:'Accumulate 25 losses',hidden:false},
   {id:'stubborn',icon:'🪨',name:'Stubborn',desc:'Play 50 games as the same player name',hidden:false},
   {id:'the_dragon',icon:'🐲',name:'The Lazy Dragon',desc:'Unlock 20 achievements',hidden:false},
-  {id:'konami',icon:'🎮',name:'The Code',desc:'',hidden:true},
-  {id:'dragons_bane',icon:'☠️',name:"Dragon's Bane",desc:'',hidden:true},
+  {id:'konami',icon:'🎮',name:'The Code',desc:'You remembered. ↑↑↓↓←→←→BA — a classic.',hidden:true},
+  {id:'dragons_bane',icon:'☠️',name:"Dragon's Bane",desc:"You bent the dragon's own records. Cheater. Respect.",hidden:true},
 ];
 
 // ================================================================
@@ -942,7 +942,7 @@ function renderAchievements(){
       <div class="ach-icon">${isHidden?'?':a.icon}</div>
       <div class="ach-info">
         <div class="name">${isHidden?'???':a.name}</div>
-        <div class="desc">${isHidden?'Hidden Achievement':isUnlocked?a.desc||'???':a.desc||''}</div>
+        <div class="desc">${isHidden?'Hidden Achievement':a.desc}</div>
       </div>
       <div class="${isUnlocked?'ach-badge':'ach-progress'}">${isUnlocked?'✓ UNLOCKED':''}</div>
     `;
