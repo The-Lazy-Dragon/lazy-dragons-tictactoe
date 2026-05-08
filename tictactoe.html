@@ -53,7 +53,7 @@ canvas{position:fixed;top:0;left:0;pointer-events:none;z-index:0;}
 /* INPUTS */
 .input-row{display:flex;gap:10px;margin-bottom:12px;align-items:center;}
 .input-label{font-size:10px;letter-spacing:2px;color:var(--dark);min-width:40px;text-transform:uppercase;}
-input[type=text]{background:rgba(58,72,106,0.3);border:1px solid var(--dark);border-radius:2px;color:var(--cyan);font-family:var(--font-mono);font-size:13px;padding:8px 12px;width:100%;outline:none;transition:border-color 0.2s,box-shadow 0.2s;cursor:text;}
+input[type=text]{background:rgba(58,72,106,0.3);border:1px solid var(--dark);border-radius:2px;color:var(--cyan);font-family:var(--font-mono);font-size:13px;padding:8px 12px;width:100%;outline:none;transition:border-color 0.2s,box-shadow 0.2s;cursor:none !important;}
 input[type=text]:focus{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,255,247,0.2);}
 input[type=text]::placeholder{color:rgba(58,72,106,0.8);}
 
@@ -159,7 +159,7 @@ input[type=text]::placeholder{color:rgba(58,72,106,0.8);}
 .color-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .color-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(58,72,106,0.15);border:1px solid rgba(58,72,106,0.3);border-radius:2px;}
 .color-name{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dark);}
-input[type=color]{width:32px;height:24px;border:1px solid var(--dark);border-radius:2px;background:none;cursor:none;padding:0;}
+input[type=color]{width:32px;height:24px;border:1px solid var(--dark);border-radius:2px;background:none;cursor:none !important;padding:0;}
 
 /* CMD CONSOLE */
 #console{position:fixed;bottom:0;left:0;right:0;height:260px;background:rgba(8,14,22,0.97);border-top:1px solid var(--cyan);z-index:500;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);font-family:var(--font-mono);}
@@ -171,7 +171,7 @@ input[type=color]{width:32px;height:24px;border:1px solid var(--dark);border-rad
 #console-output::-webkit-scrollbar-thumb{background:var(--dark);}
 #console-input-row{display:flex;align-items:center;padding:6px 12px;border-top:1px solid rgba(58,72,106,0.3);}
 #console-prompt{color:var(--cyan);margin-right:8px;font-size:11px;}
-#console-input{flex:1;background:none;border:none;color:var(--cyan);font-family:var(--font-mono);font-size:11px;outline:none;caret-color:var(--cyan);cursor:text;}
+#console-input{flex:1;background:none;border:none;color:var(--cyan);font-family:var(--font-mono);font-size:11px;outline:none;caret-color:var(--cyan);cursor:none !important;}
 .con-line{margin:0;}
 .con-line.cmd{color:rgba(0,255,247,0.5);}
 .con-line.ok{color:var(--cyan);}
@@ -205,6 +205,27 @@ input[type=color]{width:32px;height:24px;border:1px solid var(--dark);border-rad
 /* KONAMI MODE */
 body.konami{--cyan:#00ff64;--x-color:#00ff64;--text:#00ff64;}
 body.konami .cell.x{color:#00ff64;text-shadow:0 0 20px #00ff64,0 0 40px #00ff64;}
+
+/* CURSOR MODES */
+#cursor.text-mode{width:3px;height:20px;}
+#cursor.text-mode::before{width:2px;height:100%;left:50%;transform:translateX(-50%);}
+#cursor.text-mode::after{width:10px;height:2px;top:50%;transform:translateY(-50%);}
+#cursor.pointer-mode{width:18px;height:18px;border-radius:50%;border:2px solid var(--cyan);box-shadow:0 0 12px var(--cyan),0 0 24px rgba(0,255,247,0.3);}
+#cursor.pointer-mode::before{width:2px;height:40%;top:0;}
+#cursor.pointer-mode::after{width:40%;height:2px;left:0;}
+
+/* DRAGON MODE */
+body.dragon-mode{--bg:#000000;--dark:#400000;--cyan:#FF0000;--red:#BF0000;--crimson:#800000;--x-color:#FF0000;--o-color:#BF0000;--text:#FF0000;--grid:#400000;}
+body.dragon-mode #cursor::before,body.dragon-mode #cursor::after{background:#FF0000;box-shadow:0 0 8px #FF0000;}
+body.dragon-mode #cursor-dot{background:#FF0000;box-shadow:0 0 8px #FF0000;}
+body.dragon-mode .logo{color:#FF0000;text-shadow:0 0 20px #FF0000,0 0 60px #800000;}
+body.dragon-mode .panel::before{background:linear-gradient(90deg,transparent,#FF0000,transparent);}
+
+/* DRAGON WIN BANNER */
+#dragon-win-banner{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:900;text-align:center;display:none;pointer-events:none;}
+#dragon-win-banner.show{display:block;animation:dragonBannerIn 0.5s ease;}
+@keyframes dragonBannerIn{0%{opacity:0;transform:translate(-50%,-50%) scale(0.4);}60%{transform:translate(-50%,-50%) scale(1.08);}100%{opacity:1;transform:translate(-50%,-50%) scale(1);}}
+#dragon-win-banner .banner-text{font-family:'Orbitron',monospace;font-size:clamp(14px,3.5vw,26px);font-weight:900;letter-spacing:5px;color:#FF0000;text-shadow:0 0 30px #FF0000,0 0 80px #800000,0 0 120px #400000;}
 
 /* DEVMODE INDICATOR */
 #devmode-badge{position:fixed;top:16px;left:16px;font-size:8px;letter-spacing:2px;color:#ffc800;border:1px solid #ffc800;padding:4px 8px;border-radius:2px;display:none;z-index:100;font-family:var(--font-mono);}
@@ -403,6 +424,11 @@ body.konami .cell.x{color:#00ff64;text-shadow:0 0 20px #00ff64,0 0 40px #00ff64;
   </div>
 </div>
 
+<!-- DRAGON WIN BANNER -->
+<div id="dragon-win-banner">
+  <div class="banner-text">🐉 THE DRAGON LORD IS UNDEFEATED 🐉</div>
+</div>
+
 <!-- TOAST -->
 <div id="toast-container"></div>
 <input type="file" id="file-import" accept=".txt,.json" onchange="importStats(this)">
@@ -438,6 +464,8 @@ const S = {
   achQueue: [],
   achShowing: false,
   stats: null,
+  dragonMode: false,
+  dragonWins: 0,
 };
 
 const WIN_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
@@ -482,6 +510,8 @@ const ACHIEVEMENTS = [
   {id:'the_dragon',icon:'🐲',name:'The Lazy Dragon',desc:'Unlock 20 achievements',hidden:false},
   {id:'konami',icon:'🎮',name:'The Code',desc:'You remembered. ↑↑↓↓←→←→BA — a classic.',hidden:true},
   {id:'dragons_bane',icon:'☠️',name:"Dragon's Bane",desc:"You bent the dragon's own records. Cheater. Respect.",hidden:true},
+  {id:'dragon_awakens',icon:'🔴',name:'Dragon Awakens',desc:'The world burned red. You revealed your true name.',hidden:true},
+  {id:'dragon_lord',icon:'🐉',name:'Dragon Lord',desc:'Undefeated. Five victories. The Dragon Lord bows to no one.',hidden:true},
 ];
 
 // ================================================================
@@ -652,6 +682,56 @@ function trailLoop(){
 }
 
 // ================================================================
+// CURSOR MODES
+// ================================================================
+function setCursorMode(mode){
+  cursor.classList.remove('text-mode','pointer-mode');
+  if(mode==='text') cursor.classList.add('text-mode');
+  else if(mode==='pointer') cursor.classList.add('pointer-mode');
+}
+
+document.addEventListener('mouseover', e=>{
+  const t = e.target;
+  if(t.matches('input[type=text], #console-input')){
+    setCursorMode('text');
+  } else if(t.matches('button, .btn, .mode-btn, .nav-btn, .modal-close, .toggle, .cell, .range-input, input[type=color], [onclick]')){
+    setCursorMode('pointer');
+  } else {
+    setCursorMode('default');
+  }
+});
+
+// ================================================================
+// DRAGON MODE
+// ================================================================
+function isDragonName(name){
+  const n = name.toLowerCase().normalize('NFC');
+  const patterns = ['怠竜','tearyū','tearyu','tearyü','the lazy dragon','the-lazy-dragon','the_lazy_dragon','lazy-dragon','lazy_dragon','lazy dragon'];
+  return patterns.some(p => n.includes(p));
+}
+
+function activateDragonMode(){
+  if(S.dragonMode) return;
+  S.dragonMode = true;
+  document.body.classList.add('dragon-mode');
+  checkAchievement('dragon_awakens');
+  toast('🐉 DRAGON MODE ACTIVATED 🐉','success');
+}
+
+function deactivateDragonMode(){
+  if(!S.dragonMode) return;
+  S.dragonMode = false;
+  document.body.classList.remove('dragon-mode');
+}
+
+function checkDragonName(){
+  const xName = document.getElementById('player-x-name').value;
+  const oName = document.getElementById('player-o-name').value;
+  if(isDragonName(xName)||isDragonName(oName)) activateDragonMode();
+  else deactivateDragonMode();
+}
+
+// ================================================================
 // GAME LOGIC
 // ================================================================
 function selectMode(m){
@@ -668,6 +748,8 @@ function startGame(){
   S.players.X = document.getElementById('player-x-name').value.trim() || 'Player 1';
   S.players.O = document.getElementById('player-o-name').value.trim() || (S.mode==='pvp'?'Player 2': S.mode.toUpperCase()+' AI');
   S.sessionScores = {X:0,O:0,draws:0};
+  S.dragonWins = 0;
+  checkDragonName();
   checkAchievement('night_shift');
   checkAchievement('early_riser');
   resetBoard();
@@ -758,6 +840,19 @@ function endGame(result){
     const isXWin = result==='X';
     msg = `${winnerName} WINS`;
     if(isXWin){S.sessionScores.X++;}else{S.sessionScores.O++;}
+    // Dragon mode 5-win banner
+    if(S.dragonMode){
+      const dragonIsX = isDragonName(S.players.X);
+      const dragonIsO = isDragonName(S.players.O);
+      const dragonWon = (dragonIsX&&isXWin)||(dragonIsO&&!isXWin);
+      if(dragonWon){
+        S.dragonWins++;
+        if(S.dragonWins===5){
+          checkAchievement('dragon_lord');
+          showDragonBanner();
+        }
+      }
+    }
     S.stats.totalWins++;
     S.stats.streak++;
     if(S.stats.streak>S.stats.bestStreak) S.stats.bestStreak=S.stats.streak;
@@ -857,8 +952,10 @@ function aiMove(){
   const empty = S.board.map((v,i)=>v?null:i).filter(v=>v!==null);
   if(!empty.length) return;
   let idx;
-  if(S.mode==='easy') idx=empty[Math.floor(Math.random()*empty.length)];
-  else if(S.mode==='normal') idx=Math.random()<0.5?bestMove(S.board):empty[Math.floor(Math.random()*empty.length)];
+  // Dragon mode inverts difficulties: easy<->hard
+  const effectiveMode = S.dragonMode ? (S.mode==='easy'?'hard': S.mode==='hard'?'easy': S.mode) : S.mode;
+  if(effectiveMode==='easy') idx=empty[Math.floor(Math.random()*empty.length)];
+  else if(effectiveMode==='normal') idx=Math.random()<0.5?bestMove(S.board):empty[Math.floor(Math.random()*empty.length)];
   else idx=bestMove(S.board);
   makeMove(idx);
 }
@@ -1510,6 +1607,17 @@ document.addEventListener('touchstart',e=>{
 // ================================================================
 // INIT
 // ================================================================
+function showDragonBanner(){
+  const banner = document.getElementById('dragon-win-banner');
+  banner.classList.add('show');
+  setTimeout(()=>banner.classList.remove('show'), 4000);
+}
+
+// Live dragon name detection as user types
+['player-x-name','player-o-name'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', checkDragonName);
+});
+
 function init(){
   loadStats();
   loadSettings();
